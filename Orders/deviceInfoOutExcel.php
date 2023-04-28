@@ -127,6 +127,7 @@ class deviceInfoOutExcel
 
         $sheet->getStyle('A3:'.$endColumnChar. count($rowExcel)+2)->applyFromArray($borders);
 
+
         //$spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
         for ($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
             $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);

@@ -1,6 +1,6 @@
 <?php
 // Настройки Email
-echo "Загружаю";
+
 global $site;
 $site = [];
 $site['from_name'] = 'Метео'; // from (от) имя

@@ -1,7 +1,7 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-//C:\Devepoper\Отчет по датчикам\vendor\phpmailer\phpmailer\src\PHPMailer.php
+
 require 'vendor/phpmailer/phpmailer/src/Exception.php';
 require 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require 'vendor/phpmailer/phpmailer/src/SMTP.php';
@@ -73,11 +73,11 @@ class SendingMail extends PHPMailer
 
         if($this->Send())
         {
-            echo "Не могу отослать письмо! Ошибка-".$this->ErrorInfo;
+            echo 'Письмо отослано!';
         }
         else
         {
-            echo 'Письмо отослано!';
+            echo "Не могу отослать письмо! Ошибка-".$this->ErrorInfo;
         }
         $this->ClearAddresses();
         $this->ClearAttachments();
@@ -99,11 +99,11 @@ class SendingMail extends PHPMailer
 
         if($this->Send())
         {
-            echo "Не могу отослать письмо! Ошибка-".$this->ErrorInfo;
+            echo 'Письмо отослано!';
         }
         else
         {
-            echo 'Письмо отослано!';
+            echo "Не могу отослать письмо! Ошибка-".$this->ErrorInfo;
         }
         $this->ClearAddresses();
         $this->ClearAttachments();

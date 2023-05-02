@@ -8,6 +8,8 @@ require 'BD/configDB.php';
 require 'Orders/deviceInfoOutExcel.php';
 require 'Mail/SendingMail.php';
 
+date_default_timezone_set('Asia/Yekaterinburg');
+
 global $dbConnParamObj;
 
 $bd = new pdoMySQl($dbConnParamObj);

@@ -181,6 +181,8 @@ class deviceInfoOutExcel
     $title1 = ['Имя узла','Дата и время','Датчик 1','','Датчик 2','','Датчик 3','','Датчик 4','','Датчик 5',''];
     $title2 = ['Название','t°','Название','t°','Название','t°','Название','t°','Название','%'];
     $titleShotName = ['','','DS18B20_1','','DS18B20_0','', 'DHT_T','','T_BMP280','','DHT_H']; //,'P_BMP280','A_BMP280'
+    $titleColorYELLOW = [];
+
 //        $titleLong = ['','Дата и время','t° АКБ','t° в помещении','t° Внутри','t° Дом','t° Котельная','t° Обратка','t° Офис','t° под АКБ','t° Подача','t° Пол','t° Радиатор','t° Радиатора','t° Слева','t° Справа','t° Термобокс','t° Узел','t° Узел (пол)','t° Улица','t° Улица 2','t°АКБ','t°Внутри','t°Обратка отопление','t°Обратка СК','t°Подача отопление','t°Подача СК','t°Узел','t°Улица','t°Улица 1','t°Улица 2','DHT_H','DHT_T','T_BMP280','АКБ напряжение','Влажность','Входящее напряжение','Высота','Высота над морем','Выход','Выход (ВА)','Выходная мощность активная (Вт','Выходная мощность активная (Вт)','Выходная мощность активная (Вт)','Выходное напряжение','Выходня мощность полная (ВА)','Давление','Нагрузка %','Нагрузка инвертора, (%)','Напряжение АКБ','Напряжение входной сети','Напряжение СП','Обратка отопление','Обратка СК','Подача отопление','Подача СК','Температура инвертора (NTC)','Ток заряда АКБ','Ток заряда АКБ от СБ','Ток заряда АКБ от СП','Ток заряда от сети','Ток разряда','Улица','Уровень заряда АКБ','Уровень заряда АКБ (%)','Частота входной сети','inv_status'];
     /*
      '','Дата и время','t° Улица','t° Улица 2','t° Узел','t° Узел (пол)','t° в помещении','t°Улица 2','Влажность','t° АКБ','Ток заряда АКБ от СБ','Напряжение входной сети',
@@ -219,22 +221,9 @@ class deviceInfoOutExcel
             $deviceParam[0] = $item['place'];
             $deviceParam[1] = $item['lastUpdate'];
             $addDeviceArr($item,$titleShotName, $deviceParam);
-            /*
-            $idex = array_search($item['name'],$titleShotName);
-            if (gettype($idex )!="boolean") {
-                $deviceParam[$idex] = $item['label'];
-                $deviceParam[$idex+1] = $item['value'];
-            }
-            */
+            $titleColorYELLOW[]= $item['datediff']>=1 ? True : false;
         } else {
             $addDeviceArr($item,$titleShotName, $deviceParam);
-            /*
-            $idex = array_search($item['name'],$titleShotName);
-            if (gettype($idex )!="boolean") {
-                $deviceParam[$idex] = $item['label'];
-                $deviceParam[$idex+1] = $item['value'];
-            }
-            */
         };
 
     }
@@ -333,12 +322,36 @@ class deviceInfoOutExcel
         ]
     ];
 
+    $styleRowCellYELLOW = $styleArray = [
+        'font' => [
+            'bold' => false,
+            'color' => ['argb' => 'ff000000'],
+            'name' => 'Times New Roman',
+            'size' => 12,
+        ],
+        'fill' => [
+            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => [
+                'argb' => 'ffffff00',
+            ],
+        ],
+        'alignment' => [
+            'wrapText' => true,
+        ]
+    ];
 
     $End = count($rowExcel);
-    for ($Row = 4; $Row <= $End; $Row += 2) {
-        $s = 'A' . $Row . ':'.$endColumnChar . $Row;
+
+    for ($Row = 4; $Row <= $End+2; $Row += 2) {
+        //$s = 'A' . $Row . ':'.$endColumnChar . $Row;
         $sheet->getStyle('A' . $Row . ':'.$endColumnChar . $Row)->applyFromArray($styleRowCell);
     }
+
+    for ($Row = 3; $Row <= $End+2; $Row += 1) {
+        if ($titleColorYELLOW[$Row-3])
+            $sheet->getStyle('A' . $Row . ':'.$endColumnChar . $Row)->applyFromArray($styleRowCellYELLOW);
+    }
+
     try {
 
         $filename = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".xls");

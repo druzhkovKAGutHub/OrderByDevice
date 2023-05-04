@@ -73,11 +73,11 @@ class SendingMail extends PHPMailer
 
         if($this->Send())
         {
-            echo 'Письмо отослано!';
+            echo date("d-m-Y_H:i:s")."\n";
         }
         else
         {
-            echo "Не могу отослать письмо! Ошибка-".$this->ErrorInfo;
+            echo date("d-m-Y_H:i:s")." Не могу отослать письмо! Ошибка-$this->ErrorInfo\n";
         }
         $this->ClearAddresses();
         $this->ClearAttachments();
@@ -94,16 +94,16 @@ class SendingMail extends PHPMailer
         if (!empty($file) && file_exists($file)) {
             $this->addAttachment($file); //"C:\Devepoper\Отчет по датчикам\Reports\Показание метео датчиков_26-04-2023_11-54-38.xls"
         } else {
-            echo "Не удалось прикрепить файл $file";
+            echo date("d-m-Y_H:i:s")." Не удалось прикрепить файл $file\n";
         }
 
         if($this->Send())
         {
-            echo 'Письмо отослано!';
+            echo date("d-m-Y_H:i:s").'Письмо отослано!\n';
         }
         else
         {
-            echo "Не могу отослать письмо! Ошибка-".$this->ErrorInfo;
+            echo date("d-m-Y_H:i:s")." Не могу отослать письмо! Ошибка-$this->ErrorInfo\n";
         }
         $this->ClearAddresses();
         $this->ClearAttachments();

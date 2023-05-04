@@ -12,26 +12,11 @@ class pdoMySQl
         $this->connectPDO($pgsqlConnect);
     }
 
-    public function __destruct(){
-        //$this->PDOAccess->close();
-        //$this->PDOAccess=null;
-    }
     public function connectPDO(object $pgsqlConnect)
     {
         try {
-            //$conn = new mysqli() mysqli("10.222.222.220:3306", "root", "3422671786", 'meteo');
-            $this->PDOAccess = new PDO('mysql:host=77.236.64.218:3306;dbname=meteo', "root", "3422671786");
-
-            /*
-            if($conn->connect_error){
-                die("Ошибка: " . $conn->connect_error);
-            }
-            */
-            //$sql_query = $this->ql['device_info'];
-            //$sth = $conn->query($this->ql['device_info']);
-            //$this->PDOAccess = $conn;
-
-            //$this->PDOAccess = new PDO("pgsql:host=$pgsqlConnect->host;port=$pgsqlConnect->port;dbname=$pgsqlConnect->dbname;user=$pgsqlConnect->username;password=$pgsqlConnect->password");
+            //$this->PDOAccess = new PDO('mysql:host=77.236.64.218:3306;dbname=meteo', "root", "3422671786");
+            $this->PDOAccess = new PDO("mysql:host=$pgsqlConnect->host:$pgsqlConnect->port;dbname=$pgsqlConnect->dbname", $pgsqlConnect->username, $pgsqlConnect->password);
         } catch (PDOException $e) {
             exit('{"res":"dbError","descr":"' . addslashes($e->getMessage()) . '"}');
         }
@@ -60,9 +45,6 @@ class pdoMySQl
     {
         try {
             $resF = new ResErrorClassMessage();
-            //echo "selectDB:{$sql}";
-           //$sth = $this->PDOAccess->query($this->ql[$sql]);
-            //$res = $this->PDOAccess->query($this->ql[$sql],MYSQLI_STORE_RESULT)->fetch_all(MYSQLI_ASSOC);
             $res = $this->PDOAccess->query($this->ql[$sql],PDO::FETCH_ASSOC)->fetchAll(PDO::FETCH_ASSOC);
             return $res ?? [];
 

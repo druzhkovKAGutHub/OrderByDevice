@@ -1,9 +1,9 @@
 <?php
-$host = 'localhost';
-$port = 5433;
-$dbname = 'ImpulsFM';
-$username = 'postgres';
-$passwd = 'sa';
+$host = '77.236.64.218';
+$port = 3306;
+$dbname = 'meteo';
+$username = 'root';
+$passwd = '3422671786';
 $site = '';
 $dbConnParam=['host'=>$host,
     'port'=>$port,

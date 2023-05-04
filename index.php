@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
 require 'BD/pdoMySQl.php';
-require 'BD/configDB.php';
+require 'configDB.php';
 require 'Orders/deviceInfoOutExcel.php';
 require 'Mail/SendingMail.php';
 

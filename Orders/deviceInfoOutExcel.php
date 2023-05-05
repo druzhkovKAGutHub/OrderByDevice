@@ -179,8 +179,8 @@ class deviceInfoOutExcel
     //$StartTime=microtime(true);
 
     //$title = ['Имя узла','Дата и время','t° Узел','','t° Улица','','t° Улица 2','','t°АКБ','','Влажность'];
-    $title1 = ['Дата и время','Имя узла','Датчик 1','','Датчик 2','','Датчик 3','','Датчик 4','','Датчик 5','','Датчик 6',''];
-    $title2 = ['Название','t°','Название','t°','Название','t°','Название','t°','Название','%','Название','t°'];
+    $title1 = ['Дата и время','Имя узла','Датчик','','Влажность, %'];
+    $title2 = ['Название','t°'];
     //$titleShotName = ['','','DS18B20_1','','DS18B20_0','', 'DHT_T','','T_BMP280','','DHT_H','','DS18B20_','']; //,'P_BMP280','A_BMP280'
     $titleShotName = ['','','DS18B20_','','DHT_H','', 'DHT_T','','T_BMP280','','DS18B20_1','','DS18B20_0',''];
     $titleColorYELLOW = [];
@@ -204,9 +204,9 @@ class deviceInfoOutExcel
         null,null,null,null,null,null,null,null,null,null
     ];
 
+    /*
     $addDeviceArr = function ($item,$titleShotName, &$deviceParam) {
         $idex = array_search($item['name'],$titleShotName);
-
         if (gettype($idex )!="boolean") {
             $deviceParam[$idex] = $item['label'];
             $deviceParam[$idex+1] = $item['value'];
@@ -218,10 +218,14 @@ class deviceInfoOutExcel
             }
         }
     };
+    */
 
-    $deviceParam=$pattern;
+
+
+    //$deviceParam=$pattern;
     $rowExcel=[];
     $id = -1;
+    /*
     foreach ($arr as $item){
         if ($id==-1 or $id != $item['id']) {
             if ($id != $item['id'] and $id != -1) $rowExcel[]=$deviceParam;
@@ -234,8 +238,58 @@ class deviceInfoOutExcel
         } else {
             $addDeviceArr($item,$titleShotName, $deviceParam);
         };
+    }*/
+        $addDeviceArr = function ($item) {
+            $deviceParam[0] = $item['lastUpdate'];
+            $deviceParam[1] = $item['place'];
+            $deviceParam[2] = $item['label'];
+            $deviceParam[3] = $item['value'];
+            $item['name'] == 'DHT_H' ? $deviceParam[4]=$item['value'] : $deviceParam[4]=null;
+
+            return $deviceParam;
+        };
+        $ListDeviceAddArr = function (&$tmpArr, $elemAdd, ) {
+            if (is_null($elemAdd[4]))
+                $tmpArr[] = $elemAdd;
+            else {
+                array_unshift($tmpArr, $elemAdd);
+            }
+        };
+    $i = 1;
+    $tmp_i = 0;
+    $temp_arr = [];
+    foreach ($arr as $item){
+        if ($id==-1 or $id != $item['id']) {
+            //if ($id != $item['id'] and $id != -1) $rowExcel[]=$deviceParam;
+            if ($id != $item['id'] and $id != -1) {
+                //$rowExcel[] = $temp_arr;
+                $rowExcel = array_merge($rowExcel,$temp_arr);
+                $temp_arr = [];
+            };
+            //$deviceParam = $pattern;
+
+            $id = $item['id'];
+            //$addDeviceArr($item,$titleShotName, $deviceParam);
+            $ListDeviceAddArr($temp_arr,$addDeviceArr($item));
+            $titleColorYELLOW[]= [$i-$tmp_i,$item['datediff']];
+            $tmp_i = $i;
+            ;
+        } else {
+            //$addDeviceArr($item,$titleShotName, $deviceParam);
+            $ListDeviceAddArr($temp_arr,$addDeviceArr($item));
+            /*
+            $t_a = $addDeviceArr($item);
+            if (is_null($t_a[4]))
+                $temp_arr[] = $t_a;
+            else {
+                array_unshift($temp_arr, $t_a);
+            }
+            */
+        };
+
+        $i++;
     }
-    $rowExcel[]=$deviceParam;
+    //$rowExcel[]=$deviceParam;
 
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
@@ -247,14 +301,6 @@ class deviceInfoOutExcel
             $ColumnChar = Coordinate::stringFromColumnIndex($i);
             $sheet->getStyle("$ColumnChar:$ColumnChar")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
         }
-
-    $sheet->mergeCellsByColumnAndRow(1, 1, 1, 2);
-    $sheet->mergeCellsByColumnAndRow(2, 1, 2, 2);
-    $sheet->mergeCellsByColumnAndRow(3, 1, 4, 1);
-    $sheet->mergeCellsByColumnAndRow(5, 1, 6, 1);
-    $sheet->mergeCellsByColumnAndRow(7, 1, 8, 1);
-    $sheet->mergeCellsByColumnAndRow(9, 1, 10, 1);
-    $sheet->mergeCellsByColumnAndRow(11, 1, 12, 1);
 
     $borders = [
         'borders' => [
@@ -287,6 +333,18 @@ class deviceInfoOutExcel
     $sheet->fromArray($title1,null,'A1');
     $sheet->fromArray($title2,null,'C2');
 
+    /*
+    //Временно Для отладки
+    $sheet->fromArray($title1,null,'F1');
+    $sheet->fromArray($title2,null,'H2');
+/*
+     *
+     */
+    //Объеденяю ячейки заголовка
+    $sheet->mergeCellsByColumnAndRow(1, 1, 1, 2);
+    $sheet->mergeCellsByColumnAndRow(2, 1, 2, 2);
+    $sheet->mergeCellsByColumnAndRow(5, 1, 5, 2);
+
     //Закрашиваю заголовок таблицы
     $endColumnChar = Coordinate::stringFromColumnIndex(count($title1));
     $sheet->getStyle('A1:'.$endColumnChar.'2')->applyFromArray($styleArray);
@@ -295,6 +353,11 @@ class deviceInfoOutExcel
     //Вывод данных в таблицу
     $sheet->fromArray($rowExcel,null,'A3');
 
+    /*
+    //Времено для отладки
+    //Вывод данных в таблицу
+    $sheet->fromArray($rowExcel,null,'F3');
+*/
     $sheet->getStyle('A3:'.$endColumnChar.count($rowExcel)+2)->applyFromArray($borders);
 
     for ($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
@@ -343,13 +406,27 @@ class deviceInfoOutExcel
         $sheet->getStyle('A' . $Row . ':'.$endColumnChar . $Row)->applyFromArray($styleRowCell);
     }
 
-    for ($Row = 3; $Row <= $End+2; $Row += 1) {
+    $End = count($titleColorYELLOW)-2;
+    $start =$titleColorYELLOW[0][0]+2;
+    $nextRow = 0;
+    for ($Row = 0; $Row <= $End; $Row += 1) {
+
+
+        $nextRow = $start + $titleColorYELLOW[$Row+1][0]-1;
+        $sheet->mergeCellsByColumnAndRow(1, $start, 1, $nextRow);
+        $sheet->mergeCellsByColumnAndRow(2, $start, 2, $nextRow);
+        $sheet->mergeCellsByColumnAndRow(5, $start, 5, $nextRow);
+        $start = $nextRow+1;
+        /*$titleColorYELLOW[$Row+1][0]
         if ($titleColorYELLOW[$Row-3] < 3 and $titleColorYELLOW[$Row-3] >= 1) :
             $sheet->getStyle('A' . $Row . ':' . $endColumnChar . $Row)->applyFromArray($styleRowCellYELLOW);
         elseif   ($titleColorYELLOW[$Row-3] > 3) :
             $sheet->getStyle('A' . $Row . ':' . $endColumnChar . $Row)->applyFromArray($styleRowCellRED);
         endif;
+        */
     }
+
+        //$sheet->setCellValue('E4',9999);
 
     try {
 

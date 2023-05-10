@@ -422,10 +422,18 @@ class deviceInfoOutExcel
         //$sheet->setCellValue('E4',9999);
 
     try {
+        /*
         $filename = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".xlsx");
         @unlink($filename);
 
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save("Reports/{$filename}");
+        */
+        $filename = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".pdf");
+        @unlink($filename);
+        //$class = \PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf::class;
+        // \PhpOffice\PhpSpreadsheet\IOFactory::registerWriter('Pdf', $class);
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Tcpdf');
         $writer->save("Reports/{$filename}");
     }
     catch (Exception $e) {

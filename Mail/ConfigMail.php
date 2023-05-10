@@ -15,6 +15,7 @@ $site['smtp_password'] = '1ahxUcT3FW';
 $site['language']='ru';
 //$site['SendShortReport']=['support@impuls-perm.ru','lab@npocodit.ru'];
 $site['SendShortReport']=['fokuspokustest@gmail.com','lab@npocodit.ru','sysadmin@impuls-perm.ru'];
+//$site['SendShortReport']=['fokuspokustest@gmail.com'];
 //$site['SendLongReport']=['lab@npocodit.ru','sysadmin@impuls-perm.ru','fokuspokustest@gmail.com','vz@impuls-perm.ru'];
 //$site['SendLongReport']=['fokuspokustest@gmail.com'];
 $site['SendLongReport']=['lab@npocodit.ru'];

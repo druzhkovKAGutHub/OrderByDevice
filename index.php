@@ -22,10 +22,10 @@ else {
     $excel = new deviceInfoOutExcel();
     $fileName = $excel->ExcelSheetShot($res);
 }
-/*
+
 $mail = new SendingMail();
 $mail->SendOrderShotFromMail(getcwd().DIRECTORY_SEPARATOR."Reports".DIRECTORY_SEPARATOR.$fileName);
-*/
+
 
 //Отправляет отчет с большим количеством столбцов
 /*

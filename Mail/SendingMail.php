@@ -73,12 +73,13 @@ class SendingMail extends PHPMailer
 
         if($this->Send())
         {
-            echo date("d-m-Y_H:i:s")."\n";
+            echo date("d-m-Y_H:i:s")." Письмо отослано!\n";
         }
         else
         {
             echo date("d-m-Y_H:i:s")." Не могу отослать письмо! Ошибка-$this->ErrorInfo\n";
         }
+
         $this->ClearAddresses();
         $this->ClearAttachments();
     }

@@ -70,4 +70,33 @@ class pdoMySQl
         return $resF ?? [];
     }
 
+    public function produreDB($nameProc)
+    {
+        try {
+            $resF = new ResErrorClassMessage();
+            $res = $this->PDOAccess->query($this->ql[$nameProc],PDO::FETCH_ASSOC)->fetchAll(PDO::FETCH_ASSOC);
+            return $res ?? [];
+
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+            exit('{"res":"dbError","descr":"' . addslashes($e->getMessage()) . '"}');
+        }
+        catch (Exception $e) {
+            $resF = $resF ?? new ResErrorClassMessage();
+            $resF->StatusErr = true;
+            $resF->addResFunction_Array($e->getMessage());
+            //return $resF;
+        } catch (Error $e) {
+            $resF = $resF ?? new ResErrorClassMessage();
+            $resF->StatusErr = true;
+            $resF->addResFunction_Array($e->getMessage());
+        } catch (Throwable $e) {
+            $resF = $resF ?? new ResErrorClassMessage();
+            $resF->StatusErr = true;
+            $resF->addResFunction_Array($e->getMessage());
+            // return $resF;
+        }
+        return $resF ?? [];
+    }
+
 }

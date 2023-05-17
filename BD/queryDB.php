@@ -8,3 +8,6 @@ and d.id not in (select DISTINCT d.id from devices d
 where d.name in ('M00019','M00011','M00021','test baza','Дом','NEW'))
 ORDER by d.name
 ";
+$this->ql['procDeviceGetInfo']="
+call meteo.deviceGetInfo()
+";

@@ -1,12 +1,14 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
 require 'vendor/phpmailer/phpmailer/src/Exception.php';
 require 'vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require 'vendor/phpmailer/phpmailer/src/SMTP.php';
 //require_once("Lib/PHPMailer/PHPMailerAutoload.php");
 require 'Mail/ConfigMail.php';
+//require_once 'vendor/phpmailer/phpmailer/src/SMTP.php';
 
 function mytest(){
     $m = new PHPMailer(true);
@@ -25,6 +27,9 @@ class SendingMail extends PHPMailer
     {
         global $site;
         $this->setLanguage($site['language']);
+
+        $this->SMTPDebug = $site['SMTPDebug'];//SMTP::DEBUG_CLIENT;
+ //       $this->isSMTP();
 
         // Берем из файла ConfigMail.php массив $site
         if ($site['smtp_mode'] == 'enabled')
@@ -55,9 +60,11 @@ class SendingMail extends PHPMailer
         $this->CharSet='utf-8';
         $this->Body = 'Это письмо сформировано автоматически службой уведомлений Метео. Отвечать на него не нужно.';
         $this->Subject='Показание метео датчиков за '. date("d-m-Y_H:i:s") ;
+
+
     }
 
-    function SendOrderShotFromMail($file){
+    function SendOrderShotFromMail($files){
         global $site;
         //$this->addAddress('lab@npocodit.ru');
         //$this->addAddress('sysadmin@impuls-perm.ru');
@@ -65,12 +72,14 @@ class SendingMail extends PHPMailer
             $this->addAddress($item);
         }
 // Прикрипление файлов к письму
-        if (!empty($file) && file_exists($file)) {
-            $this->addAttachment($file); //"C:\Devepoper\Отчет по датчикам\Reports\Показание метео датчиков_26-04-2023_11-54-38.xls"
-        } else {
-            echo "Не удалось прикрепить файл $file";
+        foreach ($files as $namefile) {
+            $file = getcwd() . DIRECTORY_SEPARATOR . "Reports" . DIRECTORY_SEPARATOR . $namefile;
+            if (!empty($file) && file_exists($file)) {
+                $this->addAttachment($file); //"C:\Devepoper\Отчет по датчикам\Reports\Показание метео датчиков_26-04-2023_11-54-38.xls"
+            } else {
+                echo "Не удалось прикрепить файл $file";
+            }
         }
-
         if($this->Send())
         {
             echo date("d-m-Y_H:i:s")." Письмо отослано!\n";

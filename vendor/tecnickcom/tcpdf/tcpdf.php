@@ -1927,7 +1927,16 @@ class TCPDF {
 		$this->encrypted = false;
 		$this->last_enc_key = '';
 		// standard Unicode fonts
-		$this->CoreFonts = array(
+        /*
+        $this->CoreFonts = ['times'=>'Times-Roman',
+            'timesB'=>'Times-Bold',
+            'timesI'=>'Times-Italic',
+            'timesBI'=>'Times-BoldItalic',
+            'symbol'=>'Symbol',
+            'zapfdingbats'=>'ZapfDingbats'
+        ];
+		*/
+        $this->CoreFonts = array(
 			'courier'=>'Courier',
 			'courierB'=>'Courier-Bold',
 			'courierI'=>'Courier-Oblique',
@@ -1943,6 +1952,7 @@ class TCPDF {
 			'symbol'=>'Symbol',
 			'zapfdingbats'=>'ZapfDingbats'
 		);
+
 		// set scale factor
 		$this->setPageUnit($unit);
 		// set page format and orientation

@@ -61,34 +61,15 @@ class deviceInfoOutExcel
         $spreadsheet->getDefaultStyle()->getFont()->setSize(12);
 
         $sheet->getStyle('A:A')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+        //Установка ширины всех столбцов
         for ($i=1;$i<=count($rowExcel);$i++) {
             $sheet->getColumnDimensionByColumn($i)->setWidth('20');
         }
-        /*
-        $sheet->getColumnDimensionByColumn(1)->setWidth('20');
-        $sheet->getColumnDimensionByColumn(2)->setWidth('40');
-        $sheet->getColumnDimensionByColumn(3)->setWidth('50');
-        $sheet->getColumnDimensionByColumn(4)->setWidth('20');
-        $sheet->getColumnDimensionByColumn(5)->setWidth('20');
-        $sheet->getColumnDimensionByColumn(6)->setWidth('35');
-        $sheet->getColumnDimensionByColumn(7)->setWidth('30');
-        $sheet->getColumnDimensionByColumn(8)->setWidth('20');
-        $sheet->getColumnDimensionByColumn(9)->setWidth('35');
-        $sheet->getColumnDimensionByColumn(10)->setWidth('20');
-        $sheet->getColumnDimensionByColumn(11)->setWidth('40');
-        $sheet->getColumnDimensionByColumn(12)->setWidth('40');
-        $sheet->getColumnDimensionByColumn(13)->setWidth('40');
-        $sheet->getColumnDimensionByColumn(14)->setWidth('40');
-        $sheet->getColumnDimensionByColumn(15)->setWidth('30');
-        $sheet->getColumnDimensionByColumn(16)->setWidth('30');
-        $sheet->getColumnDimensionByColumn(17)->setWidth('30');
-        $sheet->getColumnDimensionByColumn(18)->setWidth('30');
-        $sheet->getColumnDimensionByColumn(19)->setWidth('30');
-        $sheet->getColumnDimensionByColumn(20)->setWidth('30');
-        */
+
+
+
         $sheet->mergeCellsByColumnAndRow(1, 1, count($rowExcel), 1);
-
-
 
         $borders = [
             'borders' => [
@@ -124,15 +105,18 @@ class deviceInfoOutExcel
         //$sheet->getStyle('A1')->applyFromArray($borders);
 
         //$sheet->fromArray($arr,null,'A3');
+
         $sheet->fromArray($rowExcel,null,'A3');
 
         $sheet->getStyle('A3:'.$endColumnChar. count($rowExcel)+2)->applyFromArray($borders);
 
-
+        //Включение автоподбора ширины столбца
         //$spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
-        for ($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
+        for ($i = 'C'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
             $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
         }
+
+
 
         $styleRowCell = $styleArray = [
             'font' => [
@@ -179,8 +163,8 @@ class deviceInfoOutExcel
     //$StartTime=microtime(true);
 
     //$title = ['Имя узла','Дата и время','t° Узел','','t° Улица','','t° Улица 2','','t°АКБ','','Влажность'];
-    $title1 = ['Дата и время','Имя узла','Датчик','','Влажность, %'];
-    $title2 = ['Название','t°'];
+    $title1 = ['Дата и время','Имя узла','Название Датчика','ед изм','Влажность','Высота','Давление'];
+    //$title2 = ['Название',''];
     //$titleShotName = ['','','DS18B20_1','','DS18B20_0','', 'DHT_T','','T_BMP280','','DHT_H','','DS18B20_','']; //,'P_BMP280','A_BMP280'
     //$titleShotName = ['','','DS18B20_','','DHT_H','', 'DHT_T','','T_BMP280','','DS18B20_1','','DS18B20_0',''];
     $titleColorYELLOW = [];
@@ -197,74 +181,114 @@ class deviceInfoOutExcel
             'T_inv','I_pv_bat'
      */
 
+        //Если первый элемент массива пустой то влажность перемещаю к следующему.
         $arrFirstNull = function (&$arr) {
-          if (count($arr[0])<4) {
-              $arrElem = array_shift($arr);
-              $arr[0][4] = $arrElem[4];
-          }
+            try {
+                if (count($arr[0]) < 4) {
+                    $arrElem = array_shift($arr);
+                    if (isset($arrElem[4])) $arr[0][4] = $arrElem[4];
+                    if (isset($arrElem[5])) $arr[0][5] = $arrElem[5];
+                    if (isset($arrElem[6])) $arr[0][6] = $arrElem[6];
+                }
+            }
+            catch (Exception $e) {
+                echo "При перемещении датчика влажности в начало массива возникла ошибка: {$e->getMessage()}\n";
+            }
         };
+        //Получаю влажность если она есть. Формирую данные по датчику
+        $getSensor = function ($item) {
+            try {
+                $deviceParam[0] = $item['lastUpdate'];
+                $deviceParam[1] = $item['place'];
+                $deviceParam[2] = $item['label'];
+                $deviceParam[3] = $item['value'];
+                $item['name'] == 'DHT_H' ? $deviceParam[4] = $item['value'] : $deviceParam[4] = null;
+                $item['name'] == 'A_BMP280' ? $deviceParam[5] = $item['value'] : $deviceParam[5] = null;
+                $item['name'] == 'P_BMP280' ? $deviceParam[6] = $item['value'] : $deviceParam[6] = null;
 
-        $DeviceArr = function ($item) {
-            $deviceParam[0] = $item['lastUpdate'];
-            $deviceParam[1] = $item['place'];
-            $deviceParam[2] = $item['label'];
-            $deviceParam[3] = $item['value'];
-            $item['name'] == 'DHT_H' ? $deviceParam[4]=$item['value'] : $deviceParam[4]=null;
-
+            }
+            catch (Exception $e) {
+                echo "При добавлении информации по датчику в массив для вывода возникла ошибка: {$e->getMessage()}\n";
+            }
             return $deviceParam;
         };
-        $ListDeviceAddArr = function (&$tmpArr, $elemAdd ) {
-            //if (isset($elemAdd)) {
-                if (is_null($elemAdd[4]))
-                    $tmpArr[] = $elemAdd;
-                else {
-                    //array_unshift($tmpArr, $elemAdd);
-                    $tmpArr[0][4]=$elemAdd[4];
-                }
-            //}
+        //Записываю влажность в первый элемент списка местности
+        $SetSenserLeftFirst = function (&$tmpSensors, $elemSensor ) {
+            try
+            {
+                if (!is_null($elemSensor[4])) $tmpSensors[0][4]=$elemSensor[4];
+                elseif (!is_null($elemSensor[5])) $tmpSensors[0][5]=$elemSensor[5];
+                elseif (!is_null($elemSensor[6])) $tmpSensors[0][6]=$elemSensor[6];
+                else $tmpSensors[] = $elemSensor;
+            }
+            catch (Exception $e) {
+                echo "В функции при добавлении информации по устройсквам в массив для вывода возникла ошибка: {$e->getMessage()}\n";
+            }
         };
+
     $rowExcel=[];
+
+    #region Формирую массив для вывода в Excel
     $id = -1;
     $i = 0;
-    $tmp_i = 0;
-    $temp_arr = [];
+    $tempDeviceArray = [];
     foreach ($arr as $item){
-        if ($id==-1 or $id != $item['id']) {
-            if ($id != $item['id'] and $id != -1) {
-                $arrFirstNull($temp_arr);
-                $rowExcel = array_merge($rowExcel,$temp_arr);
-                $titleColorYELLOW[]= [count($temp_arr),$dateId,$id];
-                $temp_arr = [];
+        try {
+            if ($id == -1 or $id != $item['id']) {
+                //Если закончил обрабатывать датчики по устройству и пошло следующее устройство
+                if ($id != $item['id'] and $id != -1) {
+                    $arrFirstNull($tempDeviceArray);
+                    $rowExcel = array_merge($rowExcel, $tempDeviceArray);
+                    $titleColorYELLOW[] = [count($tempDeviceArray), $dateId, $id];
+                    $tempDeviceArray = [];
+                };
+                $id = $item['id'];
+                $dateId = $item['datediff'];
+                $SetSenserLeftFirst($tempDeviceArray, $getSensor($item));
+
+            } else {
+                //$addDeviceArr($item,$titleShotName, $deviceParam);
+                $SetSenserLeftFirst($tempDeviceArray, $getSensor($item));
             };
-            $id = $item['id'];
-            $dateId = $item['datediff'];
-            $ListDeviceAddArr($temp_arr,$DeviceArr($item));
-            //$titleColorYELLOW[]= [$i-$tmp_i,$item['datediff']];
-            //$tmp_i = $i;
-
-        } else {
-            //$addDeviceArr($item,$titleShotName, $deviceParam);
-            $ListDeviceAddArr($temp_arr,$DeviceArr($item));
-        };
-
+        }
+        catch (Exception $e) {
+            echo "При добавлении информации по устройсквам в массив для вывода возникла ошибка: {$e->getMessage()}";
+        }
         $i++;
     }
+    #endregion
 
     $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
 
     $spreadsheet->getDefaultStyle()->getFont()->setName('Times New Roman');
     $spreadsheet->getDefaultStyle()->getFont()->setSize(12);
 
-    //Выравниевание в ячейках столбцов
-        for ($i=1;$i<=count($title1);$i++) {
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->getPageMargins()
+        ->setLeft(0)
+        ->setRight(0)
+        ->setTop(0)
+        ->setBottom(0);
+    // Set paper size to A4
+        $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+    //ориентацию
+        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT);
+    // уместить 1 страницу в ширину на бесконечное количество страниц в высоту
+    $sheet->getPageSetup()->setFitToWidth(1);
+    $sheet->getPageSetup()->setFitToHeight(0);
+
+
+    $endColumIndexTitle = count($title1);
+    $startRowIndexTitle = 1;
+    #region Устанавливаю выравниевание в ячейках столбцов
+
+        for ($i=1; $i<= $endColumIndexTitle; $i++) {
             $ColumnChar = Coordinate::stringFromColumnIndex($i);
             $sheet->getStyle("$ColumnChar:$ColumnChar")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
            // if (in_array($ColumnChar,['A','B','E']))
                 $sheet->getStyle("$ColumnChar:$ColumnChar")->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
         }
-
-
+    #endregion
 
     $borders = [
         'borders' => [
@@ -275,6 +299,9 @@ class deviceInfoOutExcel
                 ],
             ],
         ],
+        'alignment' => [
+            'wrapText' => true,
+        ]
     ];
 
     $styleArray = [
@@ -295,7 +322,7 @@ class deviceInfoOutExcel
 
     //Вывод значения заголовков
     $sheet->fromArray($title1,null,'A1');
-    $sheet->fromArray($title2,null,'C2');
+    //$sheet->fromArray($title2,null,'C2');
 
     /*
     //Временно Для отладки
@@ -304,33 +331,48 @@ class deviceInfoOutExcel
 /*
      *
      */
-    //Объеденяю ячейки заголовка
+    //Выравнивание заголовка
     $sheet->getStyleByColumnAndRow(1,1,5,2)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+    /*
+    //Объеденяю ячейки заголовка
     $sheet->mergeCellsByColumnAndRow(1, 1, 1, 2);
     $sheet->mergeCellsByColumnAndRow(2, 1, 2, 2);
     $sheet->mergeCellsByColumnAndRow(3, 1, 4, 1);
     $sheet->mergeCellsByColumnAndRow(5, 1, 5, 2);
+    $sheet->mergeCellsByColumnAndRow(6, 1, 6, 2);
+    $sheet->mergeCellsByColumnAndRow(7, 1, 7, 2);
+    */
 
     //Закрашиваю заголовок таблицы
-    $endColumnChar = Coordinate::stringFromColumnIndex(count($title1));
-    $sheet->getStyle('A1:'.$endColumnChar.'2')->applyFromArray($styleArray);
+    $sheet->getStyleByColumnAndRow(1,1, $endColumIndexTitle,1)->applyFromArray($styleArray);
     //$sheet->getStyle('A1')->applyFromArray($borders);
 
     //Вывод данных в таблицу
-    $sheet->fromArray($rowExcel,null,'A3');
+    $firstCollumDataCharExcel = Coordinate::stringFromColumnIndex(1);
+    $firstRowDataIndexExcel = 2;
+    $sheet->fromArray($rowExcel,null,$firstCollumDataCharExcel.$firstRowDataIndexExcel);
 
 
     //Времено для отладки
     //Вывод данных в таблицу
     //$sheet->fromArray($rowExcel,null,'F3');
 
-    $sheet->getStyle('A3:'.$endColumnChar.count($rowExcel)+2)->applyFromArray($borders);
+    $lastCollumnCharExcel = Coordinate::stringFromColumnIndex($endColumIndexTitle);
+    $lastRowIndexDataExcel = count($rowExcel)+$firstRowDataIndexExcel-1;
+
+    $sheet->getStyle($firstCollumDataCharExcel.$startRowIndexTitle.":".$lastCollumnCharExcel.$lastRowIndexDataExcel)->applyFromArray($borders);
+
+    //Отступ ячееек
+    //$sheet->getStyle($firstCollumDataCharExcel.$startRowIndexTitle.":".$lastCollumnCharExcel.$lastRowIndexDataExcel)->getAlignment()->setIndent(0);
 
     //Установка Автоподбора ширины столбцов
-    for ($column = 'A'; $column !=  $sheet->getHighestColumn(); $column++) {
+    for ($column = 'C'; $column !=  $sheet->getHighestColumn(); $column++) {
         $sheet->getColumnDimension($column)->setAutoSize(true);
     }
-    $sheet->getColumnDimension('E')->setWidth('12.13');
+    $sheet->getColumnDimensionByColumn(1)->setWidth(11.77);
+    $sheet->getColumnDimensionByColumn(2)->setWidth(14.5);
+    $sheet->getColumnDimensionByColumn(5)->setWidth(10);
 
     $styleRowCell = $styleArray = [
         'font' => [
@@ -350,18 +392,19 @@ class deviceInfoOutExcel
         ]
     ];
 
-    $End = count($rowExcel);
 
+
+    /*
+    $End = count($rowExcel)+2;
     $CollCharBegin = Coordinate::stringFromColumnIndex(3);
     $CollCharEnd = Coordinate::stringFromColumnIndex(4);
-    for ($Row = 4; $Row <= $End+2; $Row += 2) {
-        //$s = 'A' . $Row . ':'.$endColumnChar . $Row;
+    for ($Row = 4; $Row <= $End; $Row += 2) {
+        //$s = 'A' . $Row . ':'.$endColumnCharExcel . $Row;
         $sheet->getStyle( $CollCharBegin. $Row . ':'. $CollCharEnd . $Row)->applyFromArray($styleRowCell);
     }
+*/
 
-
-    $setColorRange= function ($sheet,$day, $RowStart, $CollumnStart,$RowEnd, $CollumnEnd) {
-
+    $setColorRange= function ($sheet, $day, $rowStart, $collumnStart, $rowEnd, $collumnEnd, $row) {
             $drow = function ($sheet,$CollumnStart,$RowStart,$CollumnEnd,$RowEnd,$day) {
                 $styleRowCellYELLOW = $styleArray = [
                     'fill' => [
@@ -382,13 +425,38 @@ class deviceInfoOutExcel
 
                 $columnCharStart = Coordinate::stringFromColumnIndex($CollumnStart);
                 $columnCharEnd = Coordinate::stringFromColumnIndex($CollumnEnd);
-                if ($day < 3 and $day >= 1) :
-                    $sheet->getStyle($columnCharStart . $RowStart. ':' . $columnCharEnd . $RowEnd)->applyFromArray($styleRowCellYELLOW);
-                elseif   ($day > 3) :
-                    $sheet->getStyle($columnCharStart . $RowStart. ':' . $columnCharEnd . $RowEnd)->applyFromArray($styleRowCellRED);
-                endif;
+                if ($day < 3 and $day >= 1) $sheet->getStyle($columnCharStart . $RowStart. ':' . $columnCharEnd . $RowEnd)->applyFromArray($styleRowCellYELLOW);
+                elseif ($day > 3) $sheet->getStyle($columnCharStart . $RowStart . ':' . $columnCharEnd . $RowEnd)->applyFromArray($styleRowCellRED);
+
             };
-            if ($day >= 1)  $drow($sheet,$CollumnStart,$RowStart,$CollumnEnd,$RowEnd,$day);
+
+//темно зеленый d8e4bc // светло зеленый ebf1de
+            if ($day >= 1) $drow($sheet,$collumnStart,$rowStart,$collumnEnd,$rowEnd,$day);
+            else {
+                if ($row%2==0)
+                {
+                    $styleRowCellDarkGreen =  [
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => [
+                                'argb' => 'ffd8e4bc',
+                            ]
+                        ]
+                    ];
+                $sheet->getStyleByColumnAndRow($collumnStart, $rowStart, $collumnEnd, $rowEnd)->applyFromArray($styleRowCellDarkGreen);}
+                else {
+                    $styleRowCellLigthGreen =  [
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => [
+                                'argb' => 'ffebf1de',
+                            ]
+                        ]
+                    ];
+                    $sheet->getStyleByColumnAndRow($collumnStart, $rowStart, $collumnEnd, $rowEnd)->applyFromArray($styleRowCellLigthGreen);
+                }
+                }
+
             /*
         if ($day < 3 and $day >= 1) :
             $drow($sheet,$CollumnStart,$RowStart,$CollumnEnd,$RowEnd,$day);
@@ -399,9 +467,9 @@ class deviceInfoOutExcel
             */
     };
 
+    #region Объединение яцеек данных
     $End = count($titleColorYELLOW)-1;
-    $start = 2;
-    $nextRow = 0;
+    $start = 1;
     for ($Row = 0; $Row <= $End; $Row += 1) {
         $nextRow = $start + $titleColorYELLOW[$Row][0];
         ++$start;
@@ -410,35 +478,38 @@ class deviceInfoOutExcel
             $sheet->mergeCellsByColumnAndRow(1, $start, 1, $nextRow);
             $sheet->mergeCellsByColumnAndRow(2, $start, 2, $nextRow);
             $sheet->mergeCellsByColumnAndRow(5, $start, 5, $nextRow);
+            $sheet->mergeCellsByColumnAndRow(6, $start, 6, $nextRow);
+            $sheet->mergeCellsByColumnAndRow(7, $start, 7, $nextRow);
         }
         catch (Exception $e){
-            echo "При объединении ячеек возникла ошибка:{$e->getMessage()}";
+            echo "sheet->mergeCellsByColumnAndRow(1, $start, 1, $nextRow),Количество записей - {$titleColorYELLOW[$Row][0]},Разность дат в днях - {$titleColorYELLOW[$Row][1]},ID - территории - {$titleColorYELLOW[$Row][2]}\n";
+            echo "При объединении ячеек возникла ошибка:{$e->getMessage()}\n";
         }
 
-        $setColorRange($sheet,$titleColorYELLOW[$Row][1],$start,1,$nextRow,5);
+        $setColorRange($sheet,$titleColorYELLOW[$Row][1],$start,1,$nextRow, $endColumIndexTitle,$Row+1);
         $start = $nextRow;
     }
-
-        //$sheet->setCellValue('E4',9999);
+    #endregion
 
     try {
-        /*
-        $filename = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".xlsx");
-        @unlink($filename);
+
+        $filenameExcel = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".xlsx");
+        @unlink($filenameExcel);
 
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save("Reports/{$filename}");
-        */
-        $filename = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".pdf");
-        @unlink($filename);
-        //$class = \PhpOffice\PhpSpreadsheet\Writer\Pdf\Tcpdf::class;
-        // \PhpOffice\PhpSpreadsheet\IOFactory::registerWriter('Pdf', $class);
+        $writer->save("Reports/{$filenameExcel}");
+
+
+        $filenamePDF = str_replace(':','-',"Показание метео датчиков_" . date("d-m-Y_H:i:s") . ".pdf");
+        @unlink($filenamePDF);
+
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Tcpdf');
-        $writer->save("Reports/{$filename}");
+        $writer->save("Reports/{$filenamePDF}");
+
     }
     catch (Exception $e) {
         echo $e->getMessage();
     }
-    return $filename;
+    return [$filenameExcel,$filenamePDF];
 }
 }
